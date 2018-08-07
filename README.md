@@ -1,5 +1,5 @@
 # Passwd-parser
-
+```
 Usage: ./passwd-parser -gph [FILE] ...
 Lists JSON information about users and groups from PASSWD_PATH and GROUP_PATH.
 
@@ -9,3 +9,4 @@ Lists JSON information about users and groups from PASSWD_PATH and GROUP_PATH.
 
 Example usage:
 ./passwd-parser /etc/group /etc/passwd
+```
