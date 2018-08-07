@@ -1,0 +1,87 @@
+#!/usr/bin/python 
+import getopt, sys, os, json
+from collections import defaultdict
+DEFAULT_GROUP_PATH = "/etc/group"
+DEFAULT_PASSWD_PATH = "/etc/passwd"
+
+
+
+def usage():
+    print("Usage: " + sys.argv[0]+" -gph [FILE] ... ")
+    print("Lists JSON information about users and groups from PASSWD_PATH and GROUP_PATH.")
+    print("")
+    print("  -g, --group file to parse")
+    print("  -p, --passwd file to parse ")
+    print("  -h show this page")
+    print("")
+    print("Example usage:")
+    print(sys.argv[0] + " " + DEFAULT_GROUP_PATH + " " +  DEFAULT_PASSWD_PATH)
+    sys.exit(2)
+
+def main():
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "hg:p:", ["help", "group=","passwd="])
+    except getopt.GetoptError as err:
+        print str(err)
+        usage()
+    
+    #check for environment variables and system variables
+    sysgroupspath = args[0] if len(args) == 1 else os.getenv('GROUP_PATH', DEFAULT_GROUP_PATH)
+    syspasswdpath = args[1] if len(args) == 2 else os.getenv('PASSWD_PATH', DEFAULT_PASSWD_PATH)
+    for o, a in opts:
+        if o in ("-h", "--help"):
+            usage()
+            sys.exit()
+        elif o in ("-g", "--group"):
+            sysgroupspath = a
+        elif o in ("-p", "--passwd"):
+            syspasswdpath = a
+        else:
+            assert False, "unhandled option"
+    
+    parse_groups(sysgroupspath,syspasswdpath)
+
+def parse_groups(groupspath=False,passwdpath=False):
+    assert groupspath != False, "Groups Parameter Required"
+    assert passwdpath != False, "Passwd Parameter Required"
+    users = {}
+    usergroups = defaultdict(list)
+    linecount = 0
+    try:
+        with open(groupspath) as groups:
+            for lines in groups:
+                linecount+=1
+                group = lines.strip().split(":")
+                # [0] group_name
+                # [1] password
+                # [2] groupid
+                # [3] grouplist
+                # get groups and format in dictionary with key as userid
+                assert len(group) == 4,groupspath+ " group file incorrectly formatted on line " + str(linecount)
+                for user in group[3].split(","):
+                    usergroups[user].append(group[0])
+        #print(usergroups)
+    except IOError as e:
+        print("cannot open groups file '" + groupspath + "'");
+        usage()
+    linecount = 0
+    try:
+        with open(passwdpath) as passwd:
+            for lines in passwd:
+                linecount += 1
+                user = lines.strip().split(":")
+                # [0] name
+                # [1] placeholder for password information
+                # [2] user id. each user has a unique id, root is 0
+                # [3] group id
+                # [4] comment field (likely full name)
+                # [5] home dir
+                # [6] user shell
+                assert len(user) == 7,passwdpath +" passwd file incorrectly formatted on line "+str(linecount)
+                users[user[0]] = {"uid":user[2],"full_name":user[4],"groups":usergroups[user[0]]}
+        print(json.dumps(users))
+    except IOError as e:
+        print("cannot open passwd file '" + passwdpath + "'");
+        usage()
+if __name__ == "__main__":
+    main()
