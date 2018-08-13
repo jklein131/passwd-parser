@@ -1,4 +1,5 @@
 #!/usr/bin/python 
+from __future__ import print_function
 import getopt, sys, os, json
 from collections import defaultdict
 DEFAULT_GROUP_PATH = "/etc/group"
@@ -22,7 +23,7 @@ def main():
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hg:p:", ["help", "group=","passwd="])
     except getopt.GetoptError as err:
-        print str(err)
+        print (str(err), file=sys.stderr)
         usage()
     
     #check for environment variables and system variables
@@ -62,7 +63,7 @@ def parse_groups(groupspath=False,passwdpath=False):
                     usergroups[user].append(group[0])
         #print(usergroups)
     except IOError as e:
-        print("cannot open groups file '" + groupspath + "'");
+        print("cannot open groups file '" + groupspath + "'", file=sys.stderr);
         usage()
     linecount = 0
     try:
@@ -81,7 +82,7 @@ def parse_groups(groupspath=False,passwdpath=False):
                 users[user[0]] = {"uid":user[2],"full_name":user[4],"groups":usergroups[user[0]]}
         print(json.dumps(users))
     except IOError as e:
-        print("cannot open passwd file '" + passwdpath + "'");
+        print("cannot open passwd file '" + passwdpath + "'", file=sys.stderr);
         usage()
 if __name__ == "__main__":
     main()
