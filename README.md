@@ -1,4 +1,5 @@
 # Passwd-parser
+Solution to an Interview Programming Challenge. 
 ```
 Usage: ./passwd-parser -gph [FILE] ...
 Lists JSON information about users and groups from PASSWD_PATH and GROUP_PATH.
